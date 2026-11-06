@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>БРЭЙНРОТ ЯЙЦА: УКРАДИ И ВЫЛУПИ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-pink: #ff007f;
+            --neon-cyan: #00f3ff;
+            --neon-lime: #39ff14;
+            --neon-gold: #ffd700;
+            --neon-purple: #b026ff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #090514;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(176, 38, 255, 0.22) 0%, transparent 35%),
+                radial-gradient(circle at 85% 75%, rgba(0, 243, 255, 0.18) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(255, 0, 127, 0.12) 0%, transparent 60%);
+            color: #ffffff;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .font-meme {
+            font-family: 'Rubik Mono One', sans-serif;
+        }
+
+        /* Анимации брэйнрота */
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px var(--neon-pink)); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 25px var(--neon-cyan)); }
+        }
+
+        @keyframes eggWobble {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            20% { transform: rotate(-10deg) scale(1.06); }
+            40% { transform: rotate(10deg) scale(1.08); }
+            60% { transform: rotate(-6deg) scale(1.04); }
+            80% { transform: rotate(6deg) scale(1.02); }
+        }
+
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-6px, 5px) rotate(-1deg); }
+            40% { transform: translate(6px, -6px) rotate(1deg); }
+            60% { transform: translate(-5px, -3px) rotate(-0.5deg); }
+            80% { transform: translate(5px, 4px) rotate(0.5deg); }
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(0.8) rotate(-5deg); }
+            50% { opacity: 1; transform: translateY(-45px) scale(1.25) rotate(5deg); }
+            100% { opacity: 0; transform: translateY(-90px) scale(0.9) rotate(0deg); }
+        }
+
+        @keyframes bgEmojiFloat {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes radarSweep {
+            0% { left: 2%; }
+            50% { left: 88%; }
+            100% { left: 2%; }
+        }
+
+        .wobble-active {
+            animation: eggWobble 0.28s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        .shake-active {
+            animation: screenShake 0.3s ease-in-out;
+        }
+
+        .floating-text {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            animation: floatUp 0.95s ease-out forwards;
+            font-weight: 900;
+            text-shadow: 0 3px 10px rgba(0,0,0,0.85);
+        }
+
+        .bg-emoji {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            font-size: 2.5rem;
+            animation: bgEmojiFloat 14s linear infinite;
+        }
+
+        /* Стеклянные неоновые панели */
+        .neon-card {
+            background: rgba(18, 12, 36, 0.82);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(176, 38, 255, 0.12);
+        }
+
+        .neon-border-pink {
+            border-color: #ff007f;
+            box-shadow: 0 0 18px rgba(255, 0, 127, 0.35), inset 0 0 12px rgba(255, 0, 127, 0.15);
+        }
+
+        .neon-border-cyan {
+            border-color: #00f3ff;
+            box-shadow: 0 0 18px rgba(0, 243, 255, 0.35), inset 0 0 12px rgba(0, 243, 255, 0.15);
+        }
+
+        .neon-border-lime {
+            border-color: #39ff14;
+            box-shadow: 0 0 18px rgba(57, 255, 20, 0.35), inset 0 0 12px rgba(57, 255, 20, 0.15);
+        }
+
+        /* Кнопки */
+        .btn-meme {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-meme:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.02);
+        }
+        .btn-meme:active:not(:disabled) {
+            transform: translateY(2px) scale(0.97);
+        }
+
+        /* Цвета редкости */
+        .rarity-common { border-color: #9ca3af; background: linear-gradient(145deg, rgba(31,41,55,0.9), rgba(17,24,39,0.95)); }
+        .rarity-rare { border-color: #00f3ff; background: linear-gradient(145deg, rgba(8,51,68,0.9), rgba(15,23,42,0.95)); box-shadow: 0 0 15px rgba(0,243,255,0.25); }
+        .rarity-epic { border-color: #b026ff; background: linear-gradient(145deg, rgba(59,7,100,0.9), rgba(15,23,42,0.95)); box-shadow: 0 0 18px rgba(176,38,255,0.35); }
+        .rarity-legendary { border-color: #ffd700; background: linear-gradient(145deg, rgba(66,32,6,0.9), rgba(24,24,27,0.95)); box-shadow: 0 0 22px rgba(255,215,0,0.45); }
+        .rarity-mythic { border-color: #ff007f; background: linear-gradient(145deg, rgba(80,7,36,0.95), rgba(30,10,60,0.95)); box-shadow: 0 0 28px rgba(255,0,127,0.65); }
+
+        /* Скроллбар */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0d071c; }
+        ::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative">
+
+    <!-- Плавающие фоновые эмодзи -->
+    <div id="bg-emojis-container" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div>
+
+    <!-- Canvas для салюта и частиц -->
+    <canvas id="particle-canvas" class="fixed inset-0 pointer-events-none z-40"></canvas>
+
+    <!-- Верхний бар / Шапка -->
+    <header class="relative z-10 sticky top-0 bg-[#0d071e]/90 backdrop-blur-md border-b-2 border-purple-500/40 px-3 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <!-- Лого -->
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-600 via-purple-600 to-cyan-400 p-0.5 shadow-lg shadow-pink-500/30 flex items-center justify-center">
+                    <div class="w-full h-full bg-[#120924] rounded-[14px] flex items-center justify-center text-2xl">
+                        🕶️
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-meme text-lg sm:text-xl md:text-2xl tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-pink-400 via-yellow-300 to-cyan-400 drop-shadow">
+                        БРЭЙНРОТ ЯЙЦА
+                    </h1>
+                    <p class="text-xs text-purple-300 font-bold tracking-widest uppercase">
+                        🔥 Симулятор Кражи и Вылупления Мега-Ауры
+                    </p>
+                </div>
+            </div>
+
+            <!-- Счетчики валюты и статов -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+                <!-- Главный счетчик АУРЫ -->
+                <div class="neon-card neon-border-pink rounded-2xl px-4 py-1.5 flex items-center gap-3">
+                    <span class="text-2xl sm:text-3xl animate-bounce">✨</span>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-pink-300 font-bold">Твоя Аура</div>
+                        <div class="font-meme text-base sm:text-xl text-white flex items-baseline gap-1.5">
+                            <span id="aura-count">0</span>
+                            <span class="text-xs font-sans text-emerald-400 font-extrabold">(+<span id="aura-per-sec">0</span>/сек)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Украдено яиц -->
+                <div class="neon-card neon-border-cyan rounded-2xl px-3.5 py-1.5 hidden sm:flex items-center gap-2.5">
+                    <span class="text-2xl">🥚</span>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-cyan-300 font-bold">Склад яиц</div>
+                        <div class="font-meme text-base text-white">
+                            <span id="egg-inventory-count">0</span> / <span id="egg-max-slots">6</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопки управления звуком и Фантом-налогом -->
+                <div class="flex items-center gap-2">
+                    <button id="sound-toggle-btn" onclick="toggleSound()" class="btn-meme neon-card hover:border-cyan-400 rounded-xl p-2.5 text-lg" title="Вкл/Выкл Звук">
+                        🔊
+                    </button>
+                    <button onclick="resetProgressModal()" class="btn-meme neon-card hover:border-red-500 rounded-xl p-2.5 text-lg text-red-400" title="Сброс прогресса">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Бегущая мем-строка новостей Огайо -->
+    <div class="relative z-10 bg-gradient-to-r from-purple-950/90 via-pink-950/90 to-indigo-950/90 border-b border-pink-500/30 py-1.5 px-4 overflow-hidden">
+        <div class="max-w-7xl mx-auto flex items-center gap-2 text-xs sm:text-sm font-bold text-yellow-300">
+            <span class="bg-pink-600 text-white px-2 py-0.5 rounded-md uppercase text-[10px] tracking-wider shrink-0 animate-pulse">СВОДКА ОГАЙО</span>
+            <p id="news-ticker" class="truncate text-cyan-200 transition-opacity duration-300">
+                🚨 Внимание! Скибиди-Охранник уснул на посту — шанс украсть Золотое Сигма Яйцо повышен! 🕶️🗿
+            </p>
+        </div>
+    </div>
+
+    <!-- Основной контент (3 колонки на десктопе, вкладки/стек на мобильных) -->
+    <main class="relative z-10 max-w-7xl w-full mx-auto px-3 sm:px-4 py-5 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- ЛЕВАЯ КОЛОНКА: ЗОНА КРАЖИ ("ОХРАНА ОГАЙО") (4 кол) -->
+        <section class="lg:col-span-4 flex flex-col gap-4">
+            <div class="neon-card neon-border-cyan rounded-3xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden">
+                <!-- Заголовок блока кражи -->
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <span class="text-[11px] font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-950/80 border border-cyan-500/40 px-2.5 py-0.5 rounded-full">
+                            Локация #1: Бункер Огайо
+                        </span>
+                        <h2 class="font-meme text-lg sm:text-xl text-white mt-1">
+                            🕵️‍♂️ УКРАДИ ЯЙЦО
+                        </h2>
+                    </div>
+                    <div id="guard-mood-badge" class="px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-xs flex items-center gap-1">
+                        <span>😴</span> Спит
+                    </div>
+                </div>
+
+                <!-- Сцена с Охранником и Гнездом Яиц -->
+                <div class="relative rounded-2xl bg-gradient-to-b from-[#1a0b2e] to-[#090414] border-2 border-purple-500/40 p-4 my-2 flex flex-col items-center justify-center min-h-[220px] overflow-hidden">
+                    <!-- Неоновая сетка на фоне -->
+                    <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#00f3ff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+                    <!-- Охранник Огайо (SVG + Эмодзи) -->
+                    <div id="guard-container" class="relative z-10 flex flex-col items-center transition-transform duration-300">
+                        <div id="guard-speech" class="mb-2 px-3 py-1 rounded-xl bg-white text-black font-extrabold text-xs shadow-md relative after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-white">
+                            «Никто не тронет мои Чoco-Яйца в Огайо... Zzz»
+                        </div>
+
+                        <!-- Персонаж охранника и яйца вокруг него -->
+                        <div class="relative flex items-center justify-center my-1">
+                            <!-- Свет прожектора -->
+                            <div id="guard-spotlight" class="w-32 h-32 rounded-full bg-emerald-500/20 blur-xl absolute transition-colors duration-300"></div>
+                            
+                            <!-- Сам Босс Охранник -->
+                            <div id="guard-avatar" class="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-700 to-indigo-900 border-2 border-yellow-400 shadow-xl flex items-center justify-center text-5xl relative">
+                                🦍
+                                <span class="absolute -top-2 -right-2 text-2xl">🕶️</span>
+                                <span class="absolute -bottom-2 text-xs bg-yellow-400 text-black font-black px-2 py-0.5 rounded-full uppercase">ШЕФ ОГАЙО</span>
+                            </div>
+
+                            <!-- Спрятанные яйца рядом с охранником -->
+                            <div id="nest-egg-preview" class=" -ml-4 mt-8 w-16 h-20 rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-cyan-400 p-1 shadow-lg shadow-pink-500/50 flex items-center justify-center animate-bounce cursor-pointer" onclick="attemptStealEgg(event)">
+                                <div class="w-full h-full rounded-full bg-[#180c2e] flex items-center justify-center text-3xl">
+                                    🥚
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Полоса скрытности / Радар Охраны (Тайминг для X2 удачи) -->
+                    <div class="w-full mt-4 relative z-10">
+                        <div class="flex justify-between text-[11px] font-bold mb-1">
+                            <span class="text-cyan-300">🎯 Радар Скрытности (Жми в ЗЕЛЕНОЙ зоне = +Удача!)</span>
+                            <span id="luck-multiplier-text" class="text-yellow-300">Шанс Редкого: x1.0</span>
+                        </div>
+                        <div class="w-full h-5 bg-gray-900 rounded-full overflow-hidden border border-purple-500/50 relative flex">
+                            <div class="w-[30%] h-full bg-red-600/60"></div>
+                            <div class="w-[20%] h-full bg-yellow-500/70"></div>
+                            <!-- Идеальная Сигма-Зона -->
+                            <div class="w-[20%] h-full bg-emerald-400 shadow-[0_0_12px_#39ff14] flex items-center justify-center text-[9px] font-black text-black">
+                                СИГМА
+                            </div>
+                            <div class="w-[15%] h-full bg-yellow-500/70"></div>
+                            <div class="w-[15%] h-full bg-red-600/60"></div>
+
+                            <!-- Бегунок радара -->
+                            <div id="stealth-cursor" class="w-3 h-full bg-white rounded-full shadow-[0_0_10px_#fff] border-2 border-pink-500 absolute top-0"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопка УКРАСТЬ ЯЙЦО -->
+                <button id="steal-btn" onclick="attemptStealEgg(event)" class="btn-meme w-full py-4 mt-2 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-pink-500 text-white font-meme text-base sm:text-lg tracking-wider shadow-lg shadow-cyan-500/30 border-2 border-cyan-300 flex items-center justify-center gap-3">
+                    <span class="text-2xl">🫳</span>
+                    <span>УКРАСТЬ ЯЙЦО!</span>
+                </button>
+
+                <!-- Шансы выпадения редкостей -->
+                <div class="mt-4 pt-3 border-t border-white/10">
+                    <div class="text-xs text-purple-300 font-bold mb-2 flex items-center justify-between">
+                        <span>🎲 Шансы дропа (Уровень Удачи <span id="luck-lvl-badge">1</span>):</span>
+                        <span class="text-yellow-300 font-extrabold" id="steal-bonus-label">+0% к редким</span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-1 text-center text-[10px] font-bold">
+                        <div class="bg-gray-800/90 border border-gray-500 rounded-lg p-1">
+                            <div class="text-gray-300">Нормис</div>
+                            <div id="odd-common" class="text-white">55%</div>
+                        </div>
+                        <div class="bg-cyan-950/90 border border-cyan-400 rounded-lg p-1">
+                            <div class="text-cyan-300">Сигма</div>
+                            <div id="odd-rare" class="text-white">27%</div>
+                        </div>
+                        <div class="bg-purple-950/90 border border-purple-400 rounded-lg p-1">
+                            <div class="text-purple-300">Огайо</div>
+                            <div id="odd-epic" class="text-white">12%</div>
+                        </div>
+                        <div class="bg-yellow-950/90 border border-yellow-400 rounded-lg p-1">
+                            <div class="text-yellow-300">Легенда</div>
+                            <div id="odd-legendary" class="text-white">5%</div>
+                        </div>
+                        <div class="bg-pink-950/90 border border-pink-500 rounded-lg p-1">
+                            <div class="text-pink-300">Ризз</div>
+                            <div id="odd-mythic" class="text-white">1%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Склад украденных яиц (Очередь на вылупление) -->
+            <div class="neon-card rounded-3xl p-4 sm:p-5 flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-meme text-sm sm:text-base text-yellow-300 flex items-center gap-2">
+                        <span>🎒</span> УКРАДЕННЫЕ ЯЙЦА (<span id="bag-counter">0/6</span>)
+                    </h3>
+                    <button onclick="autoHatchAll()" id="auto-hatch-btn" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-pink-600/30 border border-pink-400 text-pink-200 hover:bg-pink-600/60 transition">
+                        ⚡ Быстрое вскрытие
+                    </button>
+                </div>
+                <p class="text-xs text-gray-400 mb-3">
+                    Нажми на яйцо в рюкзаке, чтобы поместить его в Неоновый Инкубатор!
+                </p>
+                <!-- Сетка слотов рюкзака -->
+                <div id="egg-bag-grid" class="grid grid-cols-3 gap-2.5 flex-1">
+                    <!-- Генерируется через JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА: ИНКУБАТОР И ВЫЛУПЛЕНИЕ (4 кол) -->
+        <section class="lg:col-span-4 flex flex-col gap-4">
+            <div id="incubator-panel" class="neon-card neon-border-pink rounded-3xl p-5 flex-1 flex flex-col items-center justify-between relative overflow-hidden min-h-[480px]">
+                
+                <!-- Верх инкубатора -->
+                <div class="w-full flex items-center justify-between z-10">
+                    <span class="text-[11px] font-extrabold uppercase tracking-widest text-pink-400 bg-pink-950/80 border border-pink-500/40 px-2.5 py-0.5 rounded-full">
+                        Локация #2: Лаборатория Хайпа
+                    </span>
+                    <span id="active-egg-rarity-pill" class="text-xs font-black uppercase px-3 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-600">
+                        ПУСТО
+                    </span>
+                </div>
+
+                <div class="text-center my-2 z-10">
+                    <h2 id="active-egg-title" class="font-meme text-xl sm:text-2xl text-white drop-shadow">
+                        ВЫБЕРИ ИЛИ УКРАДИ ЯЙЦО!
+                    </h2>
+                    <p id="active-egg-subtitle" class="text-xs text-purple-300 mt-1">
+                        Тапай по яйцу со всей Сигма-силой, чтобы разбить скорлупу и получить Брэйнрот-героя!
+                    </p>
+                </div>
+
+                <!-- Интерактивная сцена с Большим Яйцом -->
+                <div class="relative flex items-center justify-center my-4 w-64 h-64 sm:w-72 sm:h-72 z-10">
+                    <!-- Вращающееся неоновое кольцо под яйцом -->
+                    <div id="incubator-aura-ring" class="absolute inset-4 rounded-full bg-gradient-to-tr from-pink-600/30 via-purple-500/20 to-cyan-400/30 blur-2xl animate-pulse"></div>
+                    
+                    <!-- Кнопка-Яйцо для кликов -->
+                    <div id="main-egg-target" onclick="tapIncubatorEgg(event)" class="relative w-48 h-56 sm:w-52 sm:h-60 cursor-pointer flex items-center justify-center transition-transform duration-150 select-none group">
+                        <!-- SVG Яйца с динамическими трещинами и крутыми очками -->
+                        <svg id="egg-svg" viewBox="0 0 200 240" class="w-full h-full drop-shadow-[0_0_25px_rgba(255,0,127,0.6)] group-hover:scale-105 transition-transform">
+                            <defs>
+                                <linearGradient id="eggGradCommon" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#9ca3af" />
+                                    <stop offset="50%" stop-color="#4b5563" />
+                                    <stop offset="100%" stop-color="#1f2937" />
+                                </linearGradient>
+                                <linearGradient id="eggGradRare" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#00f3ff" />
+                                    <stop offset="50%" stop-color="#0284c7" />
+                                    <stop offset="100%" stop-color="#1e1b4b" />
+                                </linearGradient>
+                                <linearGradient id="eggGradEpic" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#e879f9" />
+                                    <stop offset="50%" stop-color="#9333ea" />
+                                    <stop offset="100%" stop-color="#3b0764" />
+                                </linearGradient>
+                                <linearGradient id="eggGradLegendary" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#fef08a" />
+                                    <stop offset="50%" stop-color="#eab308" />
+                                    <stop offset="100%" stop-color="#713f12" />
+                                </linearGradient>
+                                <linearGradient id="eggGradMythic" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ff007f" />
+                                    <stop offset="50%" stop-color="#7928ca" />
+                                    <stop offset="100%" stop-color="#00f3ff" />
+                                </linearGradient>
+                            </defs>
+
+                            <!-- Контур яйца -->
+                            <path id="egg-body-path" d="M100,15 C155,15 185,95 185,155 C185,205 148,230 100,230 C52,230 15,205 15,155 C15,95 45,15 100,15 Z" 
+                                  fill="url(#eggGradCommon)" stroke="#ffffff" stroke-width="5" />
+
+                            <!-- Блик на яйце -->
+                            <ellipse cx="68" cy="75" rx="16" ry="32" transform="rotate(-22 68 75)" fill="rgba(255,255,255,0.28)" />
+
+                            <!-- Золотая цепь на яйце -->
+                            <path d="M32,145 Q100,185 168,145" fill="none" stroke="#ffd700" stroke-width="7" stroke-dasharray="10,4" stroke-linecap="round"/>
+                            <circle cx="100" cy="172" r="12" fill="#ffd700" stroke="#b45309" stroke-width="3"/>
+                            <text x="100" y="177" font-size="13" font-weight="900" text-anchor="middle" fill="#000">$</text>
+
+                            <!-- Крутые черные очки Deal With It / Сигма -->
+                            <g id="egg-glasses" transform="translate(0, 5)">
+                                <rect x="35" y="88" width="56" height="26" rx="4" fill="#09090b" stroke="#00f3ff" stroke-width="3"/>
+                                <rect x="109" y="88" width="56" height="26" rx="4" fill="#09090b" stroke="#00f3ff" stroke-width="3"/>
+                                <rect x="91" y="93" width="18" height="7" fill="#00f3ff"/>
+                                <!-- Пиксельные блики на очках -->
+                                <rect x="43" y="93" width="14" height="5" fill="#ffffff"/>
+                                <rect x="50" y="98" width="14" height="5" fill="#ffffff"/>
+                                <rect x="117" y="93" width="14" height="5" fill="#ffffff"/>
+                                <rect x="124" y="98" width="14" height="5" fill="#ffffff"/>
+                            </g>
+
+                            <!-- Трещины (появляются по мере тапов) -->
+                            <path id="crack-1" class="hidden" d="M100,15 L90,45 L112,62 L95,82" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+                            <path id="crack-2" class="hidden" d="M175,120 L145,130 L155,150 L130,165" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+                            <path id="crack-3" class="hidden" d="M25,130 L55,140 L45,165 L75,180 L65,205" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+                        </svg>
+
+                        <!-- Плавающий бейдж поверх яйца если инкубатор пуст -->
+                        <div id="empty-incubator-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/65 rounded-3xl backdrop-blur-xs p-4 text-center">
+                            <span class="text-5xl mb-2">🪹</span>
+                            <span class="font-meme text-xs sm:text-sm text-cyan-300">ГНЕЗДО ПУСТОЕ!</span>
+                            <span class="text-[11px] text-gray-300 mt-1">Нажми «УКРАСТЬ ЯЙЦО» слева или просто кликай сюда для фарма Ауры!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Полоса ХП Скорлупы и кнопка удара -->
+                <div class="w-full z-10">
+                    <div class="flex justify-between text-xs font-extrabold mb-1.5">
+                        <span class="text-pink-300">🔨 ПРОЧНОСТЬ СКОРЛУПЫ:</span>
+                        <span id="egg-hp-text" class="text-white font-meme">0 / 0</span>
+                    </div>
+                    <div class="w-full h-6 bg-gray-900 rounded-2xl p-1 border border-pink-500/50 overflow-hidden">
+                        <div id="egg-hp-bar" class="h-full bg-gradient-to-r from-pink-500 via-yellow-400 to-emerald-400 rounded-xl transition-all duration-150" style="width: 0%"></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5 mt-3">
+                        <button onclick="tapIncubatorEgg(event)" class="btn-meme py-3.5 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-meme text-xs sm:text-sm border-2 border-pink-300 shadow-lg shadow-pink-600/30">
+                            👊 ТАПНУТЬ (УРОН: <span id="tap-power-val">1</span>)
+                        </button>
+                        <button onclick="activateRageMode()" id="rage-btn" class="btn-meme py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-black font-meme text-xs sm:text-sm border-2 border-yellow-200 shadow-lg shadow-amber-500/30">
+                            🔥 ФОНК-РЕЖИМ X3
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ПРАВАЯ КОЛОНКА: МАГАЗИН ПРОКАЧКИ И КОЛЛЕКЦИЯ МЕМОВ (4 кол) -->
+        <section class="lg:col-span-4 flex flex-col gap-4">
+            <div class="neon-card neon-border-lime rounded-3xl p-4 sm:p-5 flex-1 flex flex-col">
+                <!-- Переключатель вкладок (Прокачка / Мем-Декс) -->
+                <div class="grid grid-cols-2 gap-2 p-1 bg-black/50 rounded-2xl border border-white/10 mb-4">
+                    <button id="tab-btn-shop" onclick="switchRightTab('shop')" class="py-2.5 rounded-xl font-meme text-xs sm:text-sm bg-gradient-to-r from-emerald-500 to-cyan-500 text-black shadow-md transition">
+                        🛒 МАГАЗИН АУРЫ
+                    </button>
+                    <button id="tab-btn-dex" onclick="switchRightTab('dex')" class="py-2.5 rounded-xl font-meme text-xs sm:text-sm text-gray-300 hover:text-white transition">
+                        🏆 МЕМ-ДЕКС (<span id="dex-progress-top">0/15</span>)
+                    </button>
+                </div>
+
+                <!-- ВКЛАДКА 1: МАГАЗИН ПРОКАЧКИ -->
+                <div id="tab-content-shop" class="flex-1 flex flex-col gap-3 overflow-y-auto max-h-[540px] pr-1">
+                    <!-- Генерируется через JS -->
+                </div>
+
+                <!-- ВКЛАДКА 2: КОЛЛЕКЦИЯ ВЫЛУПЛЕННЫХ БРЭЙНРОТ-ГЕРОЕВ -->
+                <div id="tab-content-dex" class="hidden flex-1 flex flex-col gap-3 overflow-y-auto max-h-[540px] pr-1">
+                    <div class="bg-purple-950/50 border border-purple-500/30 rounded-2xl p-3 text-xs text-purple-200 flex items-center justify-between">
+                        <span>Каждый вылупленный герой навсегда качает твою пассивную <b>Ауру в секунду</b>! Дубликаты усиливают героя!</span>
+                    </div>
+                    <div id="meme-dex-grid" class="grid grid-cols-1 gap-2.5">
+                        <!-- Генерируется через JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО: НОВЫЙ БРЭЙНРОТ ВЫЛУПИЛСЯ! -->
+    <div id="hatch-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+        <div id="hatch-modal-card" class="neon-card rounded-3xl max-w-md w-full p-6 text-center border-4 border-yellow-400 relative animate-[pulseGlow_2s_infinite]">
+            <div id="hatch-rarity-tag" class="inline-block px-4 py-1 rounded-full font-meme text-xs uppercase tracking-widest mb-3 bg-yellow-400 text-black">
+                ЛЕГЕНДАРНЫЙ ДРОП!
+            </div>
+
+            <h3 class="font-meme text-2xl sm:text-3xl text-white mb-2" id="hatch-char-name">
+                СИГМА ЯЙЦО-ЧАД
+            </h3>
+
+            <!-- Аватар вылупившегося персонажа -->
+            <div class="relative w-36 h-36 mx-auto my-4 rounded-3xl bg-gradient-to-tr from-pink-500 via-purple-600 to-cyan-400 p-1 shadow-2xl">
+                <div class="w-full h-full bg-[#130926] rounded-[20px] flex flex-col items-center justify-center relative">
+                    <span id="hatch-char-emoji" class="text-7xl select-none">🗿</span>
+                    <span class="absolute -top-3 -right-3 text-4xl">🕶️</span>
+                    <span class="absolute -bottom-2 bg-emerald-400 text-black font-black text-xs px-2.5 py-0.5 rounded-full">
+                        +<span id="hatch-char-income">50</span> Ауры/сек
+                    </span>
+                </div>
+            </div>
+
+            <p id="hatch-char-desc" class="text-sm text-purple-200 italic bg-white/5 rounded-2xl p-3 border border-white/10 my-3">
+                «Его челюсть настолько острая, что скорлупа треснула сама от одного взгляда.»
+            </p>
+
+            <button onclick="closeHatchModal()" class="btn-meme w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 text-black font-meme text-base shadow-lg">
+                СЮДААА! ЗАБРАТЬ В КОЛЛЕКЦИЮ 🔥
+            </button>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: СБРОС ПРОГРЕССА -->
+    <div id="reset-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="neon-card border-2 border-red-500 rounded-3xl max-w-sm w-full p-6 text-center">
+            <div class="text-5xl mb-2">⚠️</div>
+            <h3 class="font-meme text-lg text-white mb-2">СБРОСИТЬ ВСЮ АУРУ?</h3>
+            <p class="text-xs text-gray-300 mb-5">
+                Ты уверен, что хочешь отдать всю свою Ауру и коллекцию яиц на Фантом-Налог (Fanum Tax)?
+            </p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeResetModal()" class="py-2.5 rounded-xl bg-gray-700 hover:bg-gray-600 font-bold text-sm">
+                    Отмена
+                </button>
+                <button onclick="confirmResetProgress()" class="py-2.5 rounded-xl bg-red-600 hover:bg-red-500 font-bold text-sm text-white">
+                    Да, сбросить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Футер -->
+    <footer class="relative z-10 text-center py-3 text-xs text-purple-400/70 border-t border-white/5">
+        БРЭЙНРОТ ЯЙЦА: УКРАДИ И ВЫЛУПИ • 100% Сигма Вайб • Прогресс сохраняется автоматически 💾
+    </footer>
+
+    <script>
+        /* =========================================================================
+           1. БАЗА ДАННЫХ ПЕРСОНАЖЕЙ И РЕДКОСТЕЙ
+           ========================================================================= */
+        const RARITIES = {
+            common: {
+                id: 'common',
+                name: 'Обычное (Нормис)',
+                shortName: 'Нормис',
+                color: '#9ca3af',
+                badgeClass: 'bg-gray-700 text-gray-200 border-gray-400',
+                cardClass: 'rarity-common',
+                gradId: 'url(#eggGradCommon)',
+                baseHp: 12,
+                baseWeight: 55
+            },
+            rare: {
+                id: 'rare',
+                name: 'Сигма-Редкое',
+                shortName: 'Сигма',
+                color: '#00f3ff',
+                badgeClass: 'bg-cyan-900 text-cyan-200 border-cyan-400',
+                cardClass: 'rarity-rare',
+                gradId: 'url(#eggGradRare)',
+                baseHp: 30,
+                baseWeight: 27
+            },
+            epic: {
+                id: 'epic',
+                name: 'Эпик из Огайо',
+                shortName: 'Огайо',
+                color: '#b026ff',
+                badgeClass: 'bg-purple-900 text-purple-200 border-purple-400',
+                cardClass: 'rarity-epic',
+                gradId: 'url(#eggGradEpic)',
+                baseHp: 75,
+                baseWeight: 12
+            },
+            legendary: {
+                id: 'legendary',
+                name: 'Скибиди-Легенда',
+                shortName: 'Легенда',
+                color: '#ffd700',
+                badgeClass: 'bg-yellow-900 text-yellow-200 border-yellow-400',
+                cardClass: 'rarity-legendary',
+                gradId: 'url(#eggGradLegendary)',
+                baseHp: 180,
+                baseWeight: 5
+            },
+            mythic: {
+                id: 'mythic',
+                name: 'Ультра-Ризз Мифик',
+                shortName: 'Ультра-Ризз',
+                color: '#ff007f',
+                badgeClass: 'bg-pink-900 text-pink-200 border-pink-400',
+                cardClass: 'rarity-mythic',
+                gradId: 'url(#eggGradMythic)',
+                baseHp: 450,
+                baseWeight: 1
+            }
+        };
+
+        const MEME_CHARACTERS = [
+            // COMMON
+            {
+                id: 'choco_nugget',
+                name: 'Гедагеди Наггет-Бро',
+                rarity: 'common',
+                emoji: '🥔',
+                auraPerSec: 3,
+                desc: 'Поёт «Gegagedigedagedago» 24 часа в сутки в золотой цепи и тёмных очках.'
+            },
+            {
+                id: 'drip_chick',
+                name: 'Цыпа в Подкрадулях',
+                rarity: 'common',
+                emoji: '🐥',
+                auraPerSec: 5,
+                desc: 'Только вылупился, а уже обул бархатные тяги 45-го размера.'
+            },
+            {
+                id: 'cat_huh',
+                name: 'Кот «А? ЧЁ? HUH?»',
+                rarity: 'common',
+                emoji: '🐱',
+                auraPerSec: 8,
+                desc: 'Ничего не понимает, но стабильно фармит вайб на районе.'
+            },
+            // RARE (SIGMA)
+            {
+                id: 'sigma_moai',
+                name: 'Гига-Сигма Камень',
+                rarity: 'rare',
+                emoji: '🗿',
+                auraPerSec: 22,
+                desc: 'Делает мьюинг с самого каменного века. Ни разу не моргнул.'
+            },
+            {
+                id: 'grimace_egg',
+                name: 'Гримас-Шейк Босс',
+                rarity: 'rare',
+                emoji: '🟣',
+                auraPerSec: 35,
+                desc: 'Фиолетовый коктейль в цепях. Кто его попробовал — очнулся в Огайо.'
+            },
+            {
+                id: 'smurf_cat',
+                name: 'Шайлушай в Очках',
+                rarity: 'rare',
+                emoji: '🍄',
+                auraPerSec: 48,
+                desc: 'We live, we love, we lie! Лесной гангстер с грибной шляпой.'
+            },
+            // EPIC (OHIO)
+            {
+                id: 'ohio_enderman',
+                name: 'Огайо Дрип-Слендер',
+                rarity: 'epic',
+                emoji: '🕺',
+                auraPerSec: 120,
+                desc: 'Телепортируется за спину охранника и забирает все яйца без палева.'
+            },
+            {
+                id: 'fanum_taxer',
+                name: 'Инспектор Фанум-Налога',
+                rarity: 'epic',
+                emoji: '🍔',
+                auraPerSec: 185,
+                desc: 'Откусывает ровно 30% от каждого бургера и превращает их в чистую Ауру.'
+            },
+            {
+                id: 'freddy_phonk',
+                name: 'Фредди Фазбер Фонк',
+                rarity: 'epic',
+                emoji: '🐻',
+                auraPerSec: 260,
+                desc: 'Хор-хор-хор-хор! Раздаёт нереальный битбокс на ночной смене.'
+            },
+            // LEGENDARY
+            {
+                id: 'skibidi_king',
+                name: 'Диджей Скибиди-Титан',
+                rarity: 'legendary',
+                emoji: '🚽',
+                auraPerSec: 750,
+                desc: 'Оснащён неоновыми колонками, лазерными очками и двойным турбо-сливом.'
+            },
+            {
+                id: 'cameraman_prime',
+                name: 'Титан Камерамен 3.0',
+                rarity: 'legendary',
+                emoji: '📹',
+                auraPerSec: 1200,
+                desc: 'Показывает большой палец вверх 👍 и разносит скорлупу одним взглядом.'
+            },
+            {
+                id: 'capybara_boss',
+                name: 'Дон Капибара Pull Up',
+                rarity: 'legendary',
+                emoji: '🦫',
+                auraPerSec: 1850,
+                desc: 'Подкатил на гелике с мандаринами на голове. Абсолютный чилл и уважение.'
+            },
+            // MYTHIC (ULTRA RIZZ)
+            {
+                id: 'rizz_emperor',
+                name: 'Император Ультра-Ризза',
+                rarity: 'mythic',
+                emoji: '👑',
+                auraPerSec: 6500,
+                desc: 'Обладает бесконечной харизмой. Даже яйца в сейфе сами прыгают к нему в руки!'
+            },
+            {
+                id: 'giga_galaxy_chad',
+                name: 'Космический Гигачад 9999',
+                rarity: 'mythic',
+                emoji: '🌌',
+                auraPerSec: 15000,
+                desc: 'Создатель вселенной Брэйнрота. Его подбородок видно из соседней галактики.'
+            }
+        ];
+
+        const UPGRADES = [
+            {
+                id: 'tap_power',
+                name: 'Сигма-Челюсть (Сила Тапа)',
+                desc: 'Увеличивает урон по скорлупе яиц и добычу Ауры за каждый клик.',
+                icon: '💪',
+                baseCost: 25,
+                costMult: 1.65,
+                level: 1
+            },
+            {
+                id: 'steal_luck',
+                name: 'Тёмные Очки Скрытности',
+                desc: 'Повышает шанс украсть Сигма, Огайо, Легендарные и Мифические яйца!',
+                icon: '🕶️',
+                baseCost: 80,
+                costMult: 2.1,
+                level: 1
+            },
+            {
+                id: 'auto_tap',
+                name: 'Авто-Долбитель Скорлупы',
+                desc: 'Робот-Камерамен автоматически бьёт яйцо в инкубаторе каждую секунду.',
+                icon: '🤖',
+                baseCost: 150,
+                costMult: 1.85,
+                level: 0
+            },
+            {
+                id: 'aura_mult',
+                name: 'Генератор Фонк-Баса',
+                desc: 'Усиливает весь доход Ауры со всех вылупленных героев на +25% за уровень.',
+                icon: '🔊',
+                baseCost: 400,
+                costMult: 2.2,
+                level: 0
+            },
+            {
+                id: 'bag_slots',
+                name: 'Бездонный Рюкзак Огайо',
+                desc: 'Увеличивает вместимость склада для украденных яиц (+3 слота).',
+                icon: '🎒',
+                baseCost: 600,
+                costMult: 3.0,
+                level: 0,
+                maxLevel: 4
+            }
+        ];
+
+        const NEWS_MESSAGES = [
+            "🚨 СРОЧНО: Шайлушай замечен у бункера с мешком золотых яиц!",
+            "🗿 Учёные доказали: 10 минут мьюинга в день повышают шанс на Ультра-Ризз яйцо!",
+            "🕶️ Шеф Огайо купил новые очки, но забыл включить сигнализацию на складе!",
+            "🍔 Осторожно: Инспектор Фанум-Налога проверяет холодильники в радиусе 5 км!",
+            "🚽 Скибиди-Диджей выпустил новый фонк-ремикс — скорлупа трескается сама!",
+            "🦫 Капибара припарковала золотой трактор прямо у входа в Инкубатор!"
+        ];
+
+        /* =========================================================================
+           2. СОСТОЯНИЕ ИГРЫ (STATE)
+           ========================================================================= */
+        let state = {
+            aura: 0,
+            totalHatched: 0,
+            soundEnabled: true,
+            eggBag: [],          // Массив украденных яиц { id, rarity }
+            activeEgg: null,     // Текущее яйцо в инкубаторе { rarity, hp, maxHp }
+            collection: {},      // { charId: count }
+            upgrades: {
+                tap_power: 1,
+                steal_luck: 1,
+                auto_tap: 0,
+                aura_mult: 0,
+                bag_slots: 0
+            },
+            rageTimeLeft: 0      // Секунды режима Х3
+        };
+
+        // Радар скрытности (0..100)
+        let radarPos = 50;
+        let radarDir = 1;
+
+        /* =========================================================================
+           3. СИНТЕЗАТОР ЗВУКОВ (WEB AUDIO API - БЕЗ ВНЕШНИХ ФАЙЛОВ)
+           ========================================================================= */
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!state.soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'tap') {
+                    // Короткий хрустящий звук удара по скорлупе
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220 + Math.random() * 140, now);
+                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.08);
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'steal') {
+                    // Вжух при краже яйца
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(280, now);
+                    osc.frequency.exponentialRampToValueAtTime(780, now + 0.16);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.17);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.17);
+                } else if (type === 'caught') {
+                    // Тревога охранника
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.setValueAtTime(110, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'hatch') {
+                    // Победный фонк-аккорд вылупления
+                    const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+                    notes.forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.055);
+                        gain.gain.setValueAtTime(0.15, now + idx * 0.055);
+                        gain.gain.exponentialRampToValueAtTime(0.008, now + idx * 0.055 + 0.35);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.055);
+                        osc.stop(now + idx * 0.055 + 0.35);
+                    });
+                } else if (type === 'upgrade') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(660, now + 0.07);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.18);
+                }
+            } catch (e) {
+                // Игнорируем ошибки автоплея
+            }
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            document.getElementById('sound-toggle-btn').textContent = state.soundEnabled ? '🔊' : '🔇';
+            saveGame();
+        }
+
+        /* =========================================================================
+           4. РАСЧЁТЫ СТАТОВ, ДОХОДА И ШАНСОВ
+           ========================================================================= */
+        function getMaxBagSlots() {
+            return 6 + (state.upgrades.bag_slots || 0) * 3;
+        }
+
+        function getTapDamage() {
+            const base = state.upgrades.tap_power || 1;
+            const mult = state.rageTimeLeft > 0 ? 3 : 1;
+            return base * mult;
+        }
+
+        function getAuraPerSec() {
+            let baseSum = 0;
+            MEME_CHARACTERS.forEach(char => {
+                const count = state.collection[char.id] || 0;
+                if (count > 0) {
+                    baseSum += char.auraPerSec * count;
+                }
+            });
+            const mult = 1 + (state.upgrades.aura_mult || 0) * 0.25;
+            const rage = state.rageTimeLeft > 0 ? 3 : 1;
+            return Math.floor(baseSum * mult * rage);
+        }
+
+        function getRarityWeights(bonusMultiplier = 1) {
+            const luckLvl = state.upgrades.steal_luck || 1;
+            const luckFactor = (1 + (luckLvl - 1) * 0.28) * bonusMultiplier;
+
+            let weights = {
+                common: Math.max(12, 55 - (luckLvl - 1) * 4),
+                rare: 27 + (luckLvl - 1) * 1.8 * bonusMultiplier,
+                epic: 12 * luckFactor,
+                legendary: 5 * Math.pow(luckFactor, 1.25),
+                mythic: 1 * Math.pow(luckFactor, 1.45)
+            };
+
+            const total = Object.values(weights).reduce((a, b) => a + b, 0);
+            let percentages = {};
+            for (let k in weights) {
+                percentages[k] = (weights[k] / total) * 100;
+            }
+            return percentages;
+        }
+
+        function rollEggRarity(bonusMultiplier = 1) {
+            const pct = getRarityWeights(bonusMultiplier);
+            const rand = Math.random() * 100;
+            let cumulative = 0;
+            const order = ['mythic', 'legendary', 'epic', 'rare', 'common'];
+            for (let key of order) {
+                cumulative += pct[key];
+                if (rand <= cumulative) {
+                    return key;
+                }
+            }
+            return 'common';
+        }
+
+        /* =========================================================================
+           5. МЕХАНИКА КРАЖИ ЯИЦ ("ОХРАНА ОГАЙО")
+           ========================================================================= */
+        function attemptStealEgg(event) {
+            const maxSlots = getMaxBagSlots();
+            if (state.eggBag.length >= maxSlots && state.activeEgg !== null) {
+                spawnFloatingText(event, '🎒 СКЛАД ПОЛОН! ВЫЛУПИ ЯЙЦА!', '#ff007f');
+                playSound('caught');
+                return;
+            }
+
+            // Проверяем, попали ли мы в Зеленую Сигма-зону радара (50% - 70%)
+            let radarBonus = 1.0;
+            let zoneMessage = '';
+            const guardAvatar = document.getElementById('guard-avatar');
+            const guardSpeech = document.getElementById('guard-speech');
+            const guardMood = document.getElementById('guard-mood-badge');
+
+            if (radarPos >= 50 && radarPos <= 70) {
+                radarBonus = 2.2;
+                zoneMessage = '🔥 СИГМА-СТЕЛС! УДАЧА X2.2!';
+                guardSpeech.textContent = '«Хррр... Скибиди-сны... Хррр...»';
+                guardMood.innerHTML = '<span>😴</span> В отключке';
+                guardMood.className = 'px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-xs flex items-center gap-1';
+            } else if (radarPos < 25 || radarPos > 85) {
+                // Охранник заметил шорох, но мы всё равно унесли яйцо с мелким штрафом
+                radarBonus = 0.75;
+                zoneMessage = '🚨 ШЕФ ОГАЙО ЗАМЕТИЛ! СХВАТИЛ ЧТО ПОПАЛОСЬ!';
+                guardSpeech.textContent = '«ЭЙ! КТО ТРОГАЛ МОИ ЯЙЦА В ОГАЙО?! 🕶️»';
+                guardMood.innerHTML = '<span>🤬</span> Агрится!';
+                guardMood.className = 'px-3 py-1 rounded-xl bg-red-500/20 border border-red-400 text-red-300 font-bold text-xs flex items-center gap-1';
+                guardAvatar.classList.add('shake-active');
+                setTimeout(() => guardAvatar.classList.remove('shake-active'), 350);
+            } else {
+                radarBonus = 1.15;
+                zoneMessage = '🕶️ ЧЁТКАЯ КРАЖА!';
+                guardSpeech.textContent = '«Кажется, показалось... Пойду выпью Гримас-Шейк»';
+                guardMood.innerHTML = '<span>🤨</span> Подозревает';
+                guardMood.className = 'px-3 py-1 rounded-xl bg-yellow-500/20 border border-yellow-400 text-yellow-300 font-bold text-xs flex items-center gap-1';
+            }
+
+            const rarityKey = rollEggRarity(radarBonus);
+            const rInfo = RARITIES[rarityKey];
+
+            playSound('steal');
+
+            // Если инкубатор пуст — сразу ставим яйцо в инкубатор!
+            if (!state.activeEgg) {
+                setIncubatorEgg(rarityKey);
+                spawnFloatingText(event, `🥚 УКРАДЕНО В ИНКУБАТОР: ${rInfo.shortName.toUpperCase()}!`, rInfo.color);
+            } else {
+                state.eggBag.push({
+                    uid: Date.now() + Math.random(),
+                    rarity: rarityKey
+                });
+                spawnFloatingText(event, `${zoneMessage} (+${rInfo.shortName} Яйцо)`, rInfo.color);
+            }
+
+            // Анимация гнезда
+            const nestPreview = document.getElementById('nest-egg-preview');
+            nestPreview.classList.add(' scale-125');
+            setTimeout(() => nestPreview.classList.remove('scale-125'), 150);
+
+            updateUI();
+            saveGame();
+        }
+
+        /* =========================================================================
+           6. МЕХАНИКА ИНКУБАТОРА И ВЫЛУПЛЕНИЯ
+           ========================================================================= */
+        function setIncubatorEgg(rarityKey) {
+            const rInfo = RARITIES[rarityKey];
+            state.activeEgg = {
+                rarity: rarityKey,
+                hp: rInfo.baseHp,
+                maxHp: rInfo.baseHp
+            };
+            updateIncubatorVisuals();
+            updateUI();
+        }
+
+        function selectEggFromBag(index) {
+            if (index < 0 || index >= state.eggBag.length) return;
+            const chosen = state.eggBag.splice(index, 1)[0];
+
+            // Если в инкубаторе уже было недобитое яйцо, вернём его в рюкзак
+            if (state.activeEgg) {
+                state.eggBag.push({
+                    uid: Date.now(),
+                    rarity: state.activeEgg.rarity
+                });
+            }
+
+            setIncubatorEgg(chosen.rarity);
+            playSound('steal');
+            updateUI();
+            saveGame();
+        }
+
+        function tapIncubatorEgg(event) {
+            const damage = getTapDamage();
+
+            // Даже если яйца нет в инкубаторе, тап даёт немного Ауры
+            if (!state.activeEgg) {
+                // Если в рюкзаке есть яйцо, автоматически загрузим первое!
+                if (state.eggBag.length > 0) {
+                    const nextEgg = state.eggBag.shift();
+                    setIncubatorEgg(nextEgg.rarity);
+                } else {
+                    state.aura += damage;
+                    playSound('tap');
+                    spawnFloatingText(event, `+${damage} ✨ АУРА`, '#00f3ff');
+                    updateUI();
+                    return;
+                }
+            }
+
+            // Наносим урон по скорлупе и даём Ауру за каждый тап
+            state.activeEgg.hp = Math.max(0, state.activeEgg.hp - damage);
+            const auraGain = Math.ceil(damage * 1.5);
+            state.aura += auraGain;
+
+            playSound('tap');
+
+            // Тряска яйца
+            const eggTarget = document.getElementById('main-egg-target');
+            eggTarget.classList.remove('wobble-active');
+            void eggTarget.offsetWidth; // trigger reflow
+            eggTarget.classList.add('wobble-active');
+
+            // Вылетающий текст и мини-частицы
+            const phrases = ['БАМ!', 'ХРУСЬ!', 'СИГМА-УДАР!', 'ОГАЙО!', 'СЮДАА!'];
+            const randomWord = phrases[Math.floor(Math.random() * phrases.length)];
+            spawnFloatingText(event, `-${damage} 🔨 (${randomWord}) +${auraGain}✨`, RARITIES[state.activeEgg.rarity].color);
+
+            if (event && event.clientX) {
+                spawnParticles(event.clientX, event.clientY, RARITIES[state.activeEgg.rarity].color, 8);
+            }
+
+            // Проверка на вылупление
+            if (state.activeEgg.hp <= 0) {
+                completeEggHatch(state.activeEgg.rarity);
+            } else {
+                updateIncubatorVisuals();
+                updateUI();
+            }
+        }
+
+        function completeEggHatch(rarityKey) {
+            playSound('hatch');
+
+            // Тряска панели инкубатора
+            const panel = document.getElementById('incubator-panel');
+            panel.classList.add('shake-active');
+            setTimeout(() => panel.classList.remove('shake-active'), 400);
+
+            // Выбираем случайного персонажа этой редкости
+            const pool = MEME_CHARACTERS.filter(c => c.rarity === rarityKey);
+            const hatchedChar = pool[Math.floor(Math.random() * pool.length)] || MEME_CHARACTERS[0];
+
+            // Добавляем в коллекцию
+            state.collection[hatchedChar.id] = (state.collection[hatchedChar.id] || 0) + 1;
+            state.totalHatched += 1;
+
+            // Бонусная Аура за вылупление
+            const hatchBonusAura = RARITIES[rarityKey].baseHp * 4;
+            state.aura += hatchBonusAura;
+
+            // Очищаем или берём следующее яйцо из рюкзака
+            if (state.eggBag.length > 0) {
+                const nextEgg = state.eggBag.shift();
+                setIncubatorEgg(nextEgg.rarity);
+            } else {
+                state.activeEgg = null;
+            }
+
+            // Салют из конфетти в центре экрана
+            spawnParticles(window.innerWidth / 2, window.innerHeight / 2, RARITIES[rarityKey].color, 55);
+
+            // Показываем яркую модалку с персонажем
+            showHatchModal(hatchedChar, RARITIES[rarityKey]);
+
+            updateIncubatorVisuals();
+            updateUI();
+            saveGame();
+        }
+
+        function autoHatchAll() {
+            if (state.eggBag.length === 0 && !state.activeEgg) {
+                spawnFloatingText(null, 'Сначала укради яйца у Охраны Огайо!', '#ff007f');
+                return;
+            }
+
+            // Если в инкубаторе есть яйцо, мгновенно раскалываем его, если хватает Ауры или просто даём ускоренный удар
+            if (state.activeEgg) {
+                completeEggHatch(state.activeEgg.rarity);
+            } else if (state.eggBag.length > 0) {
+                const next = state.eggBag.shift();
+                setIncubatorEgg(next.rarity);
+            }
+        }
+
+        function activateRageMode() {
+            if (state.rageTimeLeft > 0) return;
+            const cost = 100;
+            if (state.aura < cost) {
+                spawnFloatingText(null, `Нужно ${cost} ✨ Ауры для Фонк-Режима!`, '#ff007f');
+                playSound('caught');
+                return;
+            }
+            state.aura -= cost;
+            state.rageTimeLeft = 12; // 12 секунд X3 урона и дохода
+            playSound('hatch');
+            spawnParticles(window.innerWidth / 2, window.innerHeight / 2, '#ffd700', 40);
+            updateUI();
+        }
+
+        /* =========================================================================
+           7. МАГАЗИН ПРОКАЧКИ
+           ========================================================================= */
+        function getUpgradeCost(upg) {
+            const lvl = state.upgrades[upg.id] || 0;
+            return Math.floor(upg.baseCost * Math.pow(upg.costMult, lvl));
+        }
+
+        function buyUpgrade(upgId, event) {
+            const upg = UPGRADES.find(u => u.id === upgId);
+            if (!upg) return;
+
+            const currentLvl = state.upgrades[upgId] || 0;
+            if (upg.maxLevel && currentLvl >= upg.maxLevel) return;
+
+            const cost = getUpgradeCost(upg);
+            if (state.aura < cost) {
+                playSound('caught');
+                spawnFloatingText(event, 'Не хватает Ауры! Тапай яйца!', '#ff007f');
+                return;
+            }
+
+            state.aura -= cost;
+            state.upgrades[upgId] = currentLvl + 1;
+
+            playSound('upgrade');
+            spawnFloatingText(event, `⬆️ ПРОКАЧАНО: ${upg.name}!`, '#39ff14');
+
+            updateUI();
+            saveGame();
+        }
+
+        /* =========================================================================
+           8. ОБНОВЛЕНИЕ ИНТЕРФЕЙСА (UI)
+           ========================================================================= */
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return Math.floor(num).toString();
+        }
+
+        function updateIncubatorVisuals() {
+            const overlay = document.getElementById('empty-incubator-overlay');
+            const eggBody = document.getElementById('egg-body-path');
+            const rarityPill = document.getElementById('active-egg-rarity-pill');
+            const title = document.getElementById('active-egg-title');
+            const subtitle = document.getElementById('active-egg-subtitle');
+            const hpText = document.getElementById('egg-hp-text');
+            const hpBar = document.getElementById('egg-hp-bar');
+
+            const c1 = document.getElementById('crack-1');
+            const c2 = document.getElementById('crack-2');
+            const c3 = document.getElementById('crack-3');
+
+            if (!state.activeEgg) {
+                overlay.classList.remove('hidden');
+                rarityPill.textContent = 'ПУСТО';
+                rarityPill.className = 'text-xs font-black uppercase px-3 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-600';
+                title.textContent = 'ИНКУБАТОР ЖДЁТ ЯЙЦО!';
+                subtitle.textContent = 'Укради яйцо у Охраны Огайо слева или выбери из рюкзака!';
+                hpText.textContent = '0 / 0';
+                hpBar.style.width = '0%';
+                c1.classList.add('hidden');
+                c2.classList.add('hidden');
+                c3.classList.add('hidden');
+                return;
+            }
+
+            overlay.classList.add('hidden');
+            const rInfo = RARITIES[state.activeEgg.rarity];
+            eggBody.setAttribute('fill', rInfo.gradId);
+
+            rarityPill.textContent = rInfo.name;
+            rarityPill.className = `text-xs font-black uppercase px-3 py-0.5 rounded-full border ${rInfo.badgeClass}`;
+            title.textContent = `ЯЙЦО: ${rInfo.shortName.toUpperCase()}`;
+            subtitle.textContent = 'Жми на яйцо, чтобы расколоть скорлупу и выпустить мем-героя!';
+
+            const pct = Math.max(0, (state.activeEgg.hp / state.activeEgg.maxHp) * 100);
+            hpText.textContent = `${state.activeEgg.hp} / ${state.activeEgg.maxHp} ХП`;
+            hpBar.style.width = `${pct}%`;
+
+            // Показываем трещины в зависимости от повреждений
+            c1.classList.toggle('hidden', pct > 75);
+            c2.classList.toggle('hidden', pct > 45);
+            c3.classList.toggle('hidden', pct > 20);
+        }
+
+        function renderBagGrid() {
+            const grid = document.getElementById('egg-bag-grid');
+            const maxSlots = getMaxBagSlots();
+            document.getElementById('bag-counter').textContent = `${state.eggBag.length}/${maxSlots}`;
+            document.getElementById('egg-inventory-count').textContent = state.eggBag.length;
+            document.getElementById('egg-max-slots').textContent = maxSlots;
+
+            let html = '';
+            for (let i = 0; i < maxSlots; i++) {
+                const item = state.eggBag[i];
+                if (item) {
+                    const rInfo = RARITIES[item.rarity];
+                    html += `
+                        <button onclick="selectEggFromBag(${i})" class="btn-meme ${rInfo.cardClass} border-2 rounded-2xl p-2.5 flex flex-col items-center justify-center relative group min-h-[82px]">
+                            <span class="text-3xl group-hover:scale-110 transition-transform">🥚</span>
+                            <span class="text-[10px] font-black uppercase mt-1" style="color:${rInfo.color}">${rInfo.shortName}</span>
+                            <span class="absolute top-1 right-1.5 text-[10px]">🕶️</span>
+                        </button>
+                    `;
+                } else {
+                    html += `
+                        <div class="rounded-2xl border-2 border-dashed border-white/10 bg-black/25 p-2.5 flex flex-col items-center justify-center min-h-[82px] text-gray-600">
+                            <span class="text-xl opacity-40">🥚</span>
+                            <span class="text-[10px] font-bold mt-1">Пусто</span>
+                        </div>
+                    `;
+                }
+            }
+            grid.innerHTML = html;
+        }
+
+        function renderShop() {
+            const container = document.getElementById('tab-content-shop');
+            let html = '';
+
+            UPGRADES.forEach(upg => {
+                const lvl = state.upgrades[upg.id] || 0;
+                const isMax = upg.maxLevel && lvl >= upg.maxLevel;
+                const cost = getUpgradeCost(upg);
+                const canAfford = state.aura >= cost && !isMax;
+
+                html += `
+                    <div class="rounded-2xl bg-white/5 border ${canAfford ? 'border-emerald-400/60' : 'border-white/10'} p-3.5 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-950/80 border border-purple-500/40 flex items-center justify-center text-2xl shrink-0">
+                                ${upg.icon}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-sm text-white">${upg.name}</h4>
+                                    <span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-purple-600/40 text-purple-200">Ур. ${lvl}</span>
+                                </div>
+                                <p class="text-xs text-gray-300 mt-0.5 leading-snug">${upg.desc}</p>
+                            </div>
+                        </div>
+
+                        <button onclick="buyUpgrade('${upg.id}', event)" ${!canAfford ? 'disabled' : ''} 
+                                class="btn-meme shrink-0 px-3.5 py-2.5 rounded-xl font-meme text-xs ${isMax ? 'bg-gray-700 text-gray-400' : canAfford ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 text-black shadow-md shadow-emerald-500/20' : 'bg-gray-800 text-gray-400 border border-white/10'}">
+                            ${isMax ? 'МАКС' : `✨ ${formatNumber(cost)}`}
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderDex() {
+            const grid = document.getElementById('meme-dex-grid');
+            let unlockedCount = 0;
+            let html = '';
+
+            MEME_CHARACTERS.forEach(char => {
+                const count = state.collection[char.id] || 0;
+                const isUnlocked = count > 0;
+                if (isUnlocked) unlockedCount++;
+
+                const rInfo = RARITIES[char.rarity];
+
+                html += `
+                    <div class="rounded-2xl border-2 p-3 flex items-center gap-3 transition ${isUnlocked ? rInfo.cardClass : 'border-white/10 bg-black/40 opacity-60'}">
+                        <div class="w-14 h-14 rounded-2xl bg-black/50 border border-white/15 flex items-center justify-center text-3xl relative shrink-0">
+                            ${isUnlocked ? char.emoji : '❓'}
+                            ${isUnlocked ? '<span class="absolute -top-1.5 -right-1.5 text-base">🕶️</span>' : ''}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${rInfo.badgeClass}">
+                                    ${rInfo.shortName}
+                                </span>
+                                ${isUnlocked ? `<span class="text-xs font-extrabold text-emerald-400">+${formatNumber(char.auraPerSec * count)} Ауры/с (x${count})</span>` : '<span class="text-xs text-gray-500">Не открыт</span>'}
+                            </div>
+                            <h4 class="font-bold text-sm text-white mt-1 truncate">
+                                ${isUnlocked ? char.name : 'Секретный Брэйнрот-Герой'}
+                            </h4>
+                            <p class="text-xs text-gray-300 mt-0.5 line-clamp-2">
+                                ${isUnlocked ? char.desc : 'Укради и вылупи яйцо соответствующей редкости, чтобы разблокировать!'}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+            document.getElementById('dex-progress-top').textContent = `${unlockedCount}/${MEME_CHARACTERS.length}`;
+        }
+
+        function updateUI() {
+            document.getElementById('aura-count').textContent = formatNumber(state.aura);
+            document.getElementById('aura-per-sec').textContent = formatNumber(getAuraPerSec());
+            document.getElementById('tap-power-val').textContent = formatNumber(getTapDamage());
+
+            // Шансы дропа
+            const luckLvl = state.upgrades.steal_luck || 1;
+            document.getElementById('luck-lvl-badge').textContent = luckLvl;
+            document.getElementById('steal-bonus-label').textContent = `+${(luckLvl - 1) * 28}% к редким`;
+
+            const odds = getRarityWeights(1);
+            document.getElementById('odd-common').textContent = odds.common.toFixed(0) + '%';
+            document.getElementById('odd-rare').textContent = odds.rare.toFixed(0) + '%';
+            document.getElementById('odd-epic').textContent = odds.epic.toFixed(1) + '%';
+            document.getElementById('odd-legendary').textContent = odds.legendary.toFixed(1) + '%';
+            document.getElementById('odd-mythic').textContent = odds.mythic.toFixed(1) + '%';
+
+            // Кнопка Фонк-Режима
+            const rageBtn = document.getElementById('rage-btn');
+            if (state.rageTimeLeft > 0) {
+                rageBtn.textContent = `🔥 ФОНК X3 (${state.rageTimeLeft}с)`;
+                rageBtn.classList.add('animate-pulse');
+            } else {
+                rageBtn.textContent = `🔥 ФОНК-РЕЖИМ X3 (100✨)`;
+                rageBtn.classList.remove('animate-pulse');
+            }
+
+            renderBagGrid();
+            renderShop();
+            renderDex();
+        }
+
+        function switchRightTab(tab) {
+            const shopContent = document.getElementById('tab-content-shop');
+            const dexContent = document.getElementById('tab-content-dex');
+            const btnShop = document.getElementById('tab-btn-shop');
+            const btnDex = document.getElementById('tab-btn-dex');
+
+            if (tab === 'shop') {
+                shopContent.classList.remove('hidden');
+                dexContent.classList.add('hidden');
+                btnShop.className = 'py-2.5 rounded-xl font-meme text-xs sm:text-sm bg-gradient-to-r from-emerald-500 to-cyan-500 text-black shadow-md transition';
+                btnDex.className = 'py-2.5 rounded-xl font-meme text-xs sm:text-sm text-gray-300 hover:text-white transition';
+            } else {
+                shopContent.classList.add('hidden');
+                dexContent.classList.remove('hidden');
+                btnDex.className = 'py-2.5 rounded-xl font-meme text-xs sm:text-sm bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md transition';
+                btnShop.className = 'py-2.5 rounded-xl font-meme text-xs sm:text-sm text-gray-300 hover:text-white transition';
+            }
+        }
+
+        /* =========================================================================
+           9. МОДАЛЬНЫЕ ОКНА И ВИЗУАЛЬНЫЕ ЭФФЕКТЫ (ЧАСТИЦЫ И ТЕКСТ)
+           ========================================================================= */
+        function showHatchModal(char, rInfo) {
+            const modal = document.getElementById('hatch-modal');
+            const tag = document.getElementById('hatch-rarity-tag');
+            document.getElementById('hatch-char-name').textContent = char.name;
+            document.getElementById('hatch-char-emoji').textContent = char.emoji;
+            document.getElementById('hatch-char-income').textContent = char.auraPerSec;
+            document.getElementById('hatch-char-desc').textContent = `«${char.desc}»`;
+
+            tag.textContent = `ВЫЛУПИЛСЯ: ${rInfo.name.toUpperCase()}!`;
+            tag.style.backgroundColor = rInfo.color;
+            tag.style.color = '#000';
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeHatchModal() {
+            const modal = document.getElementById('hatch-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function resetProgressModal() {
+            const modal = document.getElementById('reset-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeResetModal() {
+            const modal = document.getElementById('reset-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function confirmResetProgress() {
+            localStorage.removeItem('brainrot_eggs_save_v1');
+            location.reload();
+        }
+
+        function spawnFloatingText(event, text, color = '#ffffff') {
+            const el = document.createElement('div');
+            el.className = 'floating-text text-sm sm:text-base font-meme';
+            el.style.color = color;
+            el.textContent = text;
+
+            let x = window.innerWidth / 2;
+            let y = window.innerHeight / 2;
+
+            if (event && event.clientX && event.clientY) {
+                x = event.clientX + (Math.random() * 40 - 20);
+                y = event.clientY - 15;
+            }
+
+            el.style.left = `${Math.max(20, Math.min(window.innerWidth - 180, x))}px`;
+            el.style.top = `${Math.max(40, y)}px`;
+
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 950);
+        }
+
+        // Система частиц на Canvas
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function spawnParticles(x, y, baseColor, count = 20) {
+            const colors = [baseColor, '#ffd700', '#00f3ff', '#ff007f', '#39ff14', '#ffffff'];
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 9;
+                particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 2,
+                    size: 4 + Math.random() * 6,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    alpha: 1,
+                    rotation: Math.random() * 360
+                });
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.25; // гравитация
+                p.alpha -= 0.022;
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rotation += 5) * Math.PI / 180);
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.restore();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        /* =========================================================================
+           10. СОХРАНЕНИЕ, ЗАГРУЗКА И ИГРОВОЙ ЦИКЛ
+           ========================================================================= */
+        function saveGame() {
+            try {
+                localStorage.setItem('brainrot_eggs_save_v1', JSON.stringify(state));
+            } catch (e) {}
+        }
+
+        function loadGame() {
+            try {
+                const raw = localStorage.getItem('brainrot_eggs_save_v1');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    state = Object.assign(state, parsed);
+                } else {
+                    // Стартовый подарок — 1 яйцо сразу в инкубаторе!
+                    setIncubatorEgg('common');
+                }
+            } catch (e) {
+                setIncubatorEgg('common');
+            }
+        }
+
+        function createBackgroundEmojis() {
+            const container = document.getElementById('bg-emojis-container');
+            const emojis = ['🥚', '🕶️', '🗿', '🔥', '👑', '🚽', '🦫', '💎', '✨'];
+            for (let i = 0; i < 14; i++) {
+                const span = document.createElement('span');
+                span.className = 'bg-emoji';
+                span.textContent = emojis[i % emojis.length];
+                span.style.left = `${Math.random() * 96}vw`;
+                span.style.animationDuration = `${11 + Math.random() * 12}s`;
+                span.style.animationDelay = `${-Math.random() * 15}s`;
+                container.appendChild(span);
+            }
+        }
+
+        // Главный цикл радара скрытности (60 FPS)
+        function updateStealthRadar() {
+            radarPos += radarDir * 1.45;
+            if (radarPos >= 94) {
+                radarPos = 94;
+                radarDir = -1;
+            } else if (radarPos <= 2) {
+                radarPos = 2;
+                radarDir = 1;
+            }
+
+            const cursor = document.getElementById('stealth-cursor');
+            const multText = document.getElementById('luck-multiplier-text');
+            if (cursor) {
+                cursor.style.left = `${radarPos}%`;
+            }
+            if (multText) {
+                if (radarPos >= 50 && radarPos <= 70) {
+                    multText.textContent = '🔥 СИГМА-ЗОНА: Удача x2.2!';
+                    multText.className = 'text-emerald-400 font-extrabold';
+                } else if (radarPos < 25 || radarPos > 85) {
+                    multText.textContent = '⚠️ ОПАСНО: Охранник палит!';
+                    multText.className = 'text-red-400 font-extrabold';
+                } else {
+                    multText.textContent = 'Шанс Редкого: x1.15';
+                    multText.className = 'text-yellow-300';
+                }
+            }
+            requestAnimationFrame(updateStealthRadar);
+        }
+
+        // Ежесекундный тик (пассивная Аура + Авто-тапер + Таймер Фонка)
+        setInterval(() => {
+            const passive = getAuraPerSec();
+            if (passive > 0) {
+                state.aura += passive;
+            }
+
+            // Авто-долбитель скорлупы
+            const autoTapLvl = state.upgrades.auto_tap || 0;
+            if (autoTapLvl > 0 && state.activeEgg) {
+                const autoDmg = autoTapLvl * (state.rageTimeLeft > 0 ? 3 : 1);
+                state.activeEgg.hp = Math.max(0, state.activeEgg.hp - autoDmg);
+                if (state.activeEgg.hp <= 0) {
+                    completeEggHatch(state.activeEgg.rarity);
+                } else {
+                    updateIncubatorVisuals();
+                }
+            }
+
+            if (state.rageTimeLeft > 0) {
+                state.rageTimeLeft--;
+            }
+
+            updateUI();
+            saveGame();
+        }, 1000);
+
+        // Смена новостей Огайо каждые 6 секунд
+        let newsIdx = 0;
+        setInterval(() => {
+            newsIdx = (newsIdx + 1) % NEWS_MESSAGES.length;
+            const ticker = document.getElementById('news-ticker');
+            if (ticker) {
+                ticker.textContent = NEWS_MESSAGES[newsIdx];
+            }
+        }, 6000);
+
+        // Запуск при загрузке окна
+        window.onload = function () {
+            createBackgroundEmojis();
+            loadGame();
+            updateIncubatorVisuals();
+            updateUI();
+            animateParticles();
+            updateStealthRadar();
+        };
+    </script>
+</body>
+</html>
